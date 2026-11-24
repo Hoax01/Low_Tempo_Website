@@ -9,6 +9,12 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23CAFFA7'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-size='49' fill='%23204555'%3E%E2%9C%BF%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css?v=green-ipod-photo-1">
   <script src="script.js?v=story-memories-1" defer></script>
+<style>
+    .player-widget.radio-playing .eq i { animation: radio-bars 650ms ease-in-out infinite alternate; }
+    .player-widget.radio-playing .eq i:nth-child(even) { animation-delay: -325ms; }
+    @keyframes radio-bars { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+    @media (prefers-reduced-motion: reduce) { .player-widget.radio-playing .eq i { animation: none; } }
+  </style>
 </head>
 <body>
   <div class="sky-stars" aria-hidden="true"></div>
@@ -91,5 +97,42 @@
   <dialog id="productDialog" class="product-dialog"><div class="panel-bar"><span>▣ item_details.html</span><button id="dialogClose" type="button" aria-label="Close product details">×</button></div><div class="dialog-layout"><div class="dialog-art" id="dialogArt"></div><div class="dialog-content"><div class="new-badge">✧ CLOSER LOOK ✧</div><h2 id="dialogTitle"></h2><p id="dialogDescription"></p><strong id="dialogPrice"></strong><p class="concept-note">Concept preview · Availability, exact price and condition would be confirmed for each real device.</p><button class="retro-button primary" id="addBag" type="button">♡ add to demo bag</button></div></div></dialog>
   <dialog id="bagDialog" class="bag-dialog"><div class="panel-bar"><span>♡ your_demo_bag.html</span><button id="bagClose" type="button" aria-label="Close bag">×</button></div><div class="bag-inside"><h2>Your little bag <span id="bagCount">0</span></h2><div id="bagItems"></div><p class="concept-note">This is a front-end concept. Checkout and live stock are not connected.</p><button class="retro-button" id="clearBag" type="button">clear bag</button></div></dialog>
   <button class="floating-bag retro-button" id="bagButton" type="button">♡ bag <span id="floatingBagCount">0</span></button>
+<audio id="radioTrack" src="the-long-way-home.mp3" preload="none"></audio>
+  <script>
+    {
+      const button = document.getElementById("soundButton");
+      const track = document.getElementById("radioTrack");
+      const player = button.closest(".player-widget");
+      const status = player.querySelector(".tiny-copy");
+      const defaultStatus = status.textContent;
+
+      function updatePlayer(playing) {
+        button.setAttribute("aria-pressed", String(playing));
+        button.textContent = playing ? "Ⅱ pause sound" : "▷ play sound";
+        player.classList.toggle("radio-playing", playing);
+      }
+
+      track.addEventListener("play", () => updatePlayer(true));
+      track.addEventListener("pause", () => updatePlayer(false));
+      track.addEventListener("ended", () => updatePlayer(false));
+      button.addEventListener("click", async (event) => {
+        // This player replaces the short sound handled by the existing site script.
+        event.stopImmediatePropagation();
+        if (!track.paused) {
+          track.pause();
+          return;
+        }
+        status.textContent = defaultStatus;
+        try {
+          await track.play();
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            status.textContent = "The soundtrack couldn’t load. Try again.";
+            updatePlayer(false);
+          }
+        }
+      }, { capture: true });
+    }
+  </script>
 </body>
 </html>
